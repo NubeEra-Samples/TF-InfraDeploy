@@ -102,13 +102,28 @@ resource "null_resource" "nullremote3" {
       "sudo mkfs.ext4 /dev/xvde",
       "sudo mount /dev/xvde /var/www/html",
       "sudo rm -rf /var/www/html/*",
-      
-      "",
+      "sudo git clone git https://github.com/NubeEra-Samples/TF-InfraDeploy.git /var/www/html/",
      ]
     
   }
 }
 
-# 07. Take snapshot(EC2, V1, V2)
+# 07.1 Create Snapshot
+resource "aws_ebs_snapshot" "sample_snapshot" {
+  volume_id = aws_ebs_volume.myVolume.id
+  tags = {
+    Name = "myEBS_Volsnap01"
+  }  
+}
+# 07.2 Display Snapshot id
+output "myout_snap_id" {
+  value = aws_ebs_snapshot.sample_snapshot.id
+}
 
 # 08. Start Chrome --> PublicIP
+resource "null_resource" "nulllocal1" {
+  depends_on = [ null_resource.nullremote3 ]
+  provisioner "local-exec" {
+    command = "start chrome ${aws_instance.web01.public_ip}"
+  }
+}
